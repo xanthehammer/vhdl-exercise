@@ -29,11 +29,13 @@ architecture behavioral of alu is
     signal adder_carry_out   : std_logic;
     signal operation_type    : std_logic; 
     signal sub               : std_logic;
+    signal isInverted	     : std_logic_vector (3 downto 0);
 
 begin
     -- Make sense from control bits
     operation_type   <=   opcode(1);   -- Are we doing logical or arithmetic operation?
     sub              <=   opcode(0);   -- Are we doing addition/NAND or subtraction/NOR?
+    isInverted  	 <=	  m when sub = '0' else m_inverted; --Use m or m_inverted
 
 
     -- Here we calculate inverted bits for subtraction if necessary
@@ -46,23 +48,23 @@ begin
     adder_instance: carry_ripple_adder
         port map(
             a => n,
-            b => m_inverted,
-            ci => '1',
+            b => isInverted,
+            ci => sub,
             s => adder_result,
             co => adder_carry_out
         );
         
     -- Logical NAND operation
-    nand_result(0) <= not m(0) and n(0);
-    nand_result(1) <= not m(1) and n(1);
-    nand_result(2) <= not m(2) and n(2);
-    nand_result(3) <= not m(3) and n(3);
+    nand_result(0) <= not (m(0) and n(0));
+    nand_result(1) <= not (m(1) and n(1));
+    nand_result(2) <= not (m(2) and n(2));
+    nand_result(3) <= not (m(3) and n(3));
 
     -- Logical NOR operation
-    nor_result(0) <= not m(0) or n(0);
-    nor_result(1) <= not m(1) or n(1);
-    nor_result(2) <= not m(2) or n(2);
-    nor_result(3) <= not m(3) or n(3);
+    nor_result(0) <= not (m(0) or n(0));
+    nor_result(1) <= not (m(1) or n(1));
+    nor_result(2) <= not (m(2) or n(2));
+    nor_result(3) <= not (m(3) or n(3));
 
     -- Select output based on which operation was requested
     d <=   nand_result when opcode ="10" else
